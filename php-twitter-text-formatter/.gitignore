@@ -1,0 +1,6 @@
+# Directories
+vendor/
+
+# Files
+composer.lock
+.env

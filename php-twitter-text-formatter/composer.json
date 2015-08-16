@@ -1,0 +1,5 @@
+{
+  "require": {
+    "j7mbo/twitter-api-php": "dev-master"
+  }
+}
