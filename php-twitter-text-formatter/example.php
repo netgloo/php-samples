@@ -19,10 +19,10 @@ use Netgloo\TwitterTextFormatter;
 
 // Set here your twitter application tokens
 $settings = array(
-  'oauth_access_token' => "YOUR_OAUTH_ACCESS_TOKEN",
-  'oauth_access_token_secret' => "YOUR_OAUTH_ACCESS_TOKEN_SECRET",
-  'consumer_key' => "YOUR_CONSUMER_KEY",
-  'consumer_secret' => "YOUR_CONSUMER_SECRET"
+  'oauth_access_token' => "2869623551-5naf4u3ooCed4aOy0OT6fuqv2lDp30aw92VxLFg",
+  'oauth_access_token_secret' => "dCdVkjSVnLvuYUX1ddAkb3C7TK95Elq48U67prOpJ6U3a",
+  'consumer_key' => "42nhJM7aIxxXUd9mRqDqHJKun",
+  'consumer_secret' => "DhsjyOgJlFWA1c20JU5rkqUhJVY6hApx22yGPMUBvacbmMPqbU"
 );
 
 // Set here the Twitter username where to getting latest tweets

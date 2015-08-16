@@ -48,12 +48,12 @@ class TwitterTextFormatter {
 
     // Define patterns for each entity
     $hashtag_link_pattern = 
-      '<a href="http://twitter.com/search?q=%%23{{1}}&src=hash" ' . 
+      '<a href="http://twitter.com/search?q=%23{{1}}&src=hash" ' . 
       'rel="nofollow" target="_blank">#{{2}}</a>';
     $url_link_pattern = 
       '<a href="{{1}}" rel="nofollow" target="_blank" title="{{2}}">{{3}}</a>';
     $user_mention_link_pattern = 
-      '<a href="http://twitter.com/{{%1}}" rel="nofollow" target="_blank" ' . 
+      '<a href="http://twitter.com/{{1}}" rel="nofollow" target="_blank" ' . 
       'title="{{2}}">@{{3}}</a>';
     $media_link_pattern = 
       '<a href="{{1}}" rel="nofollow" target="_blank" title="{{2}}">{{3}}</a>';
