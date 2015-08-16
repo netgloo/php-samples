@@ -1,5 +1,8 @@
 ## Getting latest Tweets and displaying them in HTML with PHP
 
+See here for more informations:
+http://blog.netgloo.com/2015/08/16/php-getting-latest-tweets-and-displaying-them-in-html/
+
 ### Build and run
 
 #### Prerequisites

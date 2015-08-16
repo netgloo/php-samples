@@ -8,14 +8,16 @@
 
 <?php
 
+// Require J7mbo's TwitterAPIExchange library (used to retrive the tweets)
 require_once('vendor/j7mbo/twitter-api-php/TwitterAPIExchange.php');
 
+// Require our TwitterTextFormatter library
 require_once('TwitterTextFormatter.php');
 
 // Use the class TwitterTextFormatter
 use Netgloo\TwitterTextFormatter;
 
-// Set here your application tokens
+// Set here your twitter application tokens
 $settings = array(
   'oauth_access_token' => "YOUR_OAUTH_ACCESS_TOKEN",
   'oauth_access_token_secret' => "YOUR_OAUTH_ACCESS_TOKEN_SECRET",
@@ -36,6 +38,7 @@ $user_timeline = $twitter
   ->setGetfield($getfield)
   ->buildOauth($url, $requestMethod)
   ->performRequest();
+
 $user_timeline = json_decode($user_timeline);
 
 // Print each tweet using TwitterTextFormatter to get the HTML text
@@ -48,6 +51,10 @@ foreach ($user_timeline as $user_tweet) {
 echo "</ul>";
 
 ?>
+
+<p>
+Visit our web site at <a href="http://netgloo.com">http://netgloo.com</a>
+</p>
 
 </body>
 </html>

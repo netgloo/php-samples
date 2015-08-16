@@ -41,7 +41,8 @@ class TwitterTextFormatter {
   /**
    * Return the formatted text taking entities from the $tweet object.
    * 
-   * Credits: Jacob Emerick's Blog (http://goo.gl/lhu8Ix)
+   * Credits: this function is a modified version of the one from Jacob 
+   * Emerick's Blog (http://goo.gl/lhu8Ix)
    */
   private static function parse_tweet_text($tweet) {
 
@@ -116,7 +117,7 @@ class TwitterTextFormatter {
     }
 
     return $text;
-  } // function parse_tweet_text
+  }
 
   // --------------------------------------------------------------------------
 
