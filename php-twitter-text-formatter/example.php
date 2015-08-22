@@ -19,13 +19,16 @@ use Netgloo\TwitterTextFormatter;
 
 // Set here your twitter application tokens
 $settings = array(
-  'oauth_access_token' => "OAUTH_ACCESS_TOKEN",
-  'oauth_access_token_secret' => "OAUTH_ACCESS_TOKEN_SECRET",
-  'consumer_key' => "CONSUMER_KEY",
-  'consumer_secret' => "CONSUMER_SECRET"
+  'consumer_key' => 'CONSUMER_KEY',
+  'consumer_secret' => 'CONSUMER_SECRET',
+
+  // These two can be left empty since we'll only read from the Twitter's 
+  // timeline
+  'oauth_access_token' => '',
+  'oauth_access_token_secret' => '',
 );
 
-// Set here the Twitter username where to getting latest tweets
+// Set here the Twitter account from where getting latest tweets
 $screen_name = 'netglooweb';
 
 // Get timeline using TwitterAPIExchange
