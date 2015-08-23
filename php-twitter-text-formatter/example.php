@@ -48,7 +48,14 @@ $user_timeline = json_decode($user_timeline);
 echo "<ul>";
 foreach ($user_timeline as $user_tweet) {
   echo "<li>";
-  echo TwitterTextFormatter::format_text($user_tweet);
+  echo TwitterTextFormatter::format_text($user_tweet) . "<br/>";
+
+  // Print also the tweet's image if is set
+  if (isset($user_tweet->entities->media)) {
+    $media_url = $user_tweet->entities->media[0]->media_url;
+    echo "<img src='{$media_url}' width='150px' />";
+  }
+
   echo "</li>";
 }
 echo "</ul>";
