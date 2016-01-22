@@ -17,7 +17,7 @@ Open the file `example.php` and set your own tokens.
 
 #### Build
 
-Go in the project root's folder than run composer:
+Go in the project root's folder then run composer:
 
     $ composer update
 
