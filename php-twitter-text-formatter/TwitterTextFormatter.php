@@ -5,8 +5,7 @@ namespace Netgloo;
 /**
  * Twitter Text Formatter : format twitter timeline text in html.
  * 
- * @author   Netgloo <info@netgloo.com>
- * @version  1.0
+ * @author Netgloo <info@netgloo.com>
  */
 class TwitterTextFormatter {
 
@@ -15,20 +14,102 @@ class TwitterTextFormatter {
   /**
    * Return the tweet text formatted with the tweet's entities. 
    * 
+   * Default configs:
+   * 
+   *   $configs = [
+   *     'show_retweeted_by' => true,
+   * 
+   *     'retweeted_by_template' => 
+   *       '<em> Retweeted by {{user_name}}</em>',
+   * 
+   *     'hashtag_link_template' => 
+   *       '<a href="{{hashtag_link}}" rel="nofollow" target="_blank">' .
+   *       '#{{hashtag_text}}</a>',
+   * 
+   *     'url_link_template' => 
+   *       '<a href="{{url_link}}" rel="nofollow" target="_blank" ' .
+   *       'title="{{url_title}}">{{url_text}}</a>',
+   * 
+   *     'user_mention_link_template' => 
+   *       '<a href="{{user_mention_link}}" rel="nofollow" target="_blank" ' .
+   *       title="{{user_mention_title}}">@{{user_mention_text}}</a>',
+   * 
+   *     'media_link_template' => 
+   *       '<a href="{{media_link}}" rel="nofollow" target="_blank" ' .
+   *       'title="{{media_title}}">{{media_text}}</a>'
+   *   ];
+   * 
    * @param $tweet (Object)
+   * @param $configs (Array)
    * @return (String)
    */
-  public static function format_text($tweet, $show_retweeted_by = true) {
+  public static function format_text($tweet, $configs = []) {
 
-    // Retweeted
+    // Set up configs
+
+    self::set_default(
+      $configs,
+      'show_retweeted_by',
+      true
+    );
+
+    self::set_default(
+      $configs,
+      'retweeted_by_template',
+      '<em> Retweeted by {{user_name}}</em>'
+    );
+
+    self::set_default(
+      $configs,
+      'hashtag_link_template',
+      '<a href="{{hashtag_link}}" rel="nofollow" target="_blank">' . 
+      '#{{hashtag_text}}</a>'
+    );
+
+    self::set_default(
+      $configs,
+      'url_link_template',
+      '<a href="{{url_link}}" rel="nofollow" target="_blank" ' .
+      'title="{{url_title}}">{{url_text}}</a>'
+    );
+
+    self::set_default(
+      $configs,
+      'user_mention_link_template',
+      '<a href="{{user_mention_link}}" rel="nofollow" target="_blank" ' .
+      'title="{{user_mention_title}}">@{{user_mention_text}}</a>'
+    );
+
+    self::set_default(
+      $configs,
+      'media_link_template',
+      '<a href="{{media_link}}" rel="nofollow" target="_blank" ' .
+      'title="{{media_title}}">{{media_text}}</a>'
+    );
+
+    // Is retweeted?
     if (isset($tweet->retweeted_status)) {
+
       $user_name = $tweet->user->name;
-      $retweeted_by = $show_retweeted_by ?
-        "<em> Retweeted by {$user_name}</em>" : '';
-      return self::parse_tweet_text($tweet->retweeted_status) . $retweeted_by;
+      $retweeted_by = '';
+
+      // If show retweeted by, then prepare the "retweeted by" text
+      if ($configs['show_retweeted_by']) {
+        $retweeted_by = $configs['retweeted_by_template'];
+        $retweeted_by = str_replace(
+          '{{user_name}}', 
+          $user_name, 
+          $retweeted_by
+        );
+      }
+
+      // Return the parsed re-tweet
+      $res = self::parse_tweet_text($tweet->retweeted_status, $configs);
+      return $res . $retweeted_by;
     }
 
-    return self::parse_tweet_text($tweet);
+    // Return the parsed tweet
+    return self::parse_tweet_text($tweet, $configs);
   }
 
   // --------------------------------------------------------------------------
@@ -44,62 +125,136 @@ class TwitterTextFormatter {
    * Credits: this function is a modified version of the one from Jacob 
    * Emerick's Blog (http://goo.gl/lhu8Ix)
    */
-  private static function parse_tweet_text($tweet) {
-
-    // Define patterns for each entity
-    $hashtag_link_pattern = 
-      '<a href="http://twitter.com/search?q=%23{{1}}&src=hash" ' . 
-      'rel="nofollow" target="_blank">#{{2}}</a>';
-    $url_link_pattern = 
-      '<a href="{{1}}" rel="nofollow" target="_blank" title="{{2}}">{{3}}</a>';
-    $user_mention_link_pattern = 
-      '<a href="http://twitter.com/{{1}}" rel="nofollow" target="_blank" ' . 
-      'title="{{2}}">@{{3}}</a>';
-    $media_link_pattern = 
-      '<a href="{{1}}" rel="nofollow" target="_blank" title="{{2}}">{{3}}</a>';
+  private static function parse_tweet_text($tweet, $configs) {
 
     // Collects the set of entities
     $entity_holder = array();
 
+    // Hashtags
     if (isset($tweet->entities->hashtags)) {
+
+      $template = $configs['hashtag_link_template'];
+
       foreach ($tweet->entities->hashtags as $hashtag) {
-        $replace = $hashtag_link_pattern;
-        $replace = str_replace('{{1}}', strtolower($hashtag->text), $replace);
-        $replace = str_replace('{{2}}', $hashtag->text, $replace);
-        self::add_entity($entity_holder, $hashtag, $replace);
-      }
-    }
 
-    if (isset($tweet->entities->urls)) {
-      foreach ($tweet->entities->urls as $url) {
-        $replace = $url_link_pattern;
-        $replace = str_replace('{{1}}', $url->url, $replace);
-        $replace = str_replace('{{2}}', $url->expanded_url, $replace);
-        $replace = str_replace('{{3}}', $url->display_url, $replace);
-        self::add_entity($entity_holder, $url, $replace);
-      }  
-    }
+        // Link: https://twitter.com/hashtag/{{1}}?src=hash
+        $hashtag_link = str_replace(
+          '{{1}}', 
+          strtolower($hashtag->text), 
+          'https://twitter.com/hashtag/{{1}}?src=hash'
+        );
 
-    if (isset($tweet->entities->user_mentions)) {
-      foreach ($tweet->entities->user_mentions as $user_mention) {
-        $replace = $user_mention_link_pattern;
         $replace = str_replace(
-          '{{1}}', strtolower($user_mention->screen_name), $replace);
-        $replace = str_replace('{{2}}', $user_mention->name, $replace);
-        $replace = str_replace('{{3}}', $user_mention->screen_name, $replace);
-        self::add_entity($entity_holder, $user_mention, $replace);
-      }
-    }
+          '{{hashtag_link}}', 
+          $hashtag_link, 
+          $template
+        );
 
+        $replace = str_replace(
+          '{{hashtag_text}}', 
+          $hashtag->text, 
+          $replace
+        );
+
+        self::add_entity($entity_holder, $hashtag, $replace);
+
+      } // foreach
+
+    } // if
+
+    // Urls
+    if (isset($tweet->entities->urls)) {
+
+      $template = $configs['url_link_template'];
+
+      foreach ($tweet->entities->urls as $url) {
+        
+        $replace = str_replace(
+          '{{url_link}}',
+          $url->url,
+          $template
+        );
+        $replace = str_replace(
+          '{{url_title}}',
+          $url->expanded_url,
+          $replace
+        );
+        $replace = str_replace(
+          '{{url_text}}',
+          $url->display_url,
+          $replace
+        );
+        
+        self::add_entity($entity_holder, $url, $replace);
+
+      } // foreach
+
+    } // if
+
+    // User mentions
+    if (isset($tweet->entities->user_mentions)) {
+
+      $template = $configs['user_mention_link_template'];
+
+      foreach ($tweet->entities->user_mentions as $user_mention) {
+
+        // Link: https://twitter.com/{{1}}
+        $user_mention_link = str_replace(
+          '{{1}}', 
+          strtolower($user_mention->screen_name), 
+          'https://twitter.com/{{1}}'
+        );
+
+        $replace = str_replace(
+          '{{user_mention_link}}', 
+          $user_mention_link, 
+          $template
+        );
+        $replace = str_replace(
+          '{{user_mention_title}}', 
+          $user_mention->name, 
+          $replace
+        );
+        $replace = str_replace(
+          '{{user_mention_text}}', 
+          $user_mention->screen_name, 
+          $replace
+        );
+
+        self::add_entity($entity_holder, $user_mention, $replace);
+
+      } // foreach
+
+    } // if
+
+    // Media
     if (isset($tweet->entities->media)) {
+
+      $template = $configs['media_link_template'];
+
       foreach ($tweet->entities->media as $media) {
-        $replace = $media_link_pattern;
-        $replace = str_replace('{{1}}', $media->url, $replace);
-        $replace = str_replace('{{2}}', $media->expanded_url, $replace);
-        $replace = str_replace('{{3}}', $media->display_url, $replace);
+
+        $replace = str_replace(
+          '{{media_link}}',
+          $media->url, 
+          $template
+        );
+        $replace = str_replace(
+          '{{media_title}}',
+          $media->expanded_url, 
+          $replace
+        );
+        $replace = str_replace(
+          '{{media_text}}',
+          $media->display_url, 
+          $replace
+        );
+
         self::add_entity($entity_holder, $media, $replace);
-      }
-    }
+
+      } // foreach
+
+    } // if
 
     // Sort the entities in reverse order by their starting index
     krsort($entity_holder);
@@ -124,7 +279,11 @@ class TwitterTextFormatter {
   /**
    * Add an entity to the entity_holder.
    */
-  private static function add_entity(&$entity_holder, $tweet_entity, $replace) {
+  private static function add_entity(
+    &$entity_holder, 
+    $tweet_entity, 
+    $replace
+  ) {
     
     $entity = new \stdClass();
     $entity->start = $tweet_entity->indices[0];
@@ -142,7 +301,12 @@ class TwitterTextFormatter {
    * String replacement supporting UTF-8 encoding.
    */
   private static function mb_substr_replace(
-      $string, $replacement, $start, $length = null, $encoding = null) {
+    $string, 
+    $replacement, 
+    $start, 
+    $length = null, 
+    $encoding = null
+  ) {
     
     $strlen = mb_strlen($string, $encoding);
     $first_piece = mb_substr($string, 0, $start, $encoding) . $replacement;
@@ -157,4 +321,16 @@ class TwitterTextFormatter {
 
   // --------------------------------------------------------------------------
 
-} // class TwitterTextFormatter
+  /**
+   * Set a default value for the given key.
+   */
+  private static function set_default(&$array, $key, $default) {
+    if (!isset($array[$key])) {
+      $array[$key] = $default;
+    }
+    return;
+  }
+
+  // --------------------------------------------------------------------------
+
+} // class
